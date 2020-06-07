@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before install:
+  - docker build -t arpan9889/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true arpan9889/react-test yarn test
+
+after success:
+  - docker build -t arpan9889/multi-client ./client
+  - docker build -t arpan9889/multi-nginx ./nginx
+  - docker build -t arpan9889/multi-server ./server
+  - docker build -t arpan9889/multi-worker ./worker
+  #login to docker cli
+  - echo "$DOCKER_PASSWORD" | docker login - "$DOCKER_ID" --password-stdin
+  #push images to docker hub
+  - docker push arpan9889/multi-client
+  - docker push arpan9889/multi-nginx
+  - docker push arpan9889/multi-server
+  - docker push arpan9889/multi-worker
